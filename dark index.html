@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Annotation Dashboard - Dark Mode</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            /* Dark Mode Theme Variables */
+            --primary: #F8FAFC;       /* Light text */
+            --secondary: #3B82F6;     /* Accent blue */
+            --success: #10B981;       /* Emerald */
+            --warning: #F59E0B;       /* Amber */
+            --bg: #0F172A;            /* Slate 900 - App background */
+            --card-bg: #1E293B;       /* Slate 800 - Card background */
+            --border: #334155;        /* Slate 700 - Borders */
+            --text-muted: #94A3B8;    /* Slate 400 - Muted text */
+            --input-border: #475569;  /* Slate 600 */
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--primary);
+            margin: 0;
+            padding: 1.5rem;
+        }
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+        }
+        h1 { margin: 0; font-size: 1.6rem; color: var(--primary); }
+        
+        .header-actions { display: flex; gap: 0.75rem; }
+
+        .filter-bar {
+            background-color: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+            align-items: flex-end;
+        }
+        
+        #dynamic-choice-filters {
+            background-color: var(--bg);
+            border: 1px dashed var(--secondary);
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1rem;
+            align-items: start;
+        }
+        #dynamic-choice-filters .section-title {
+            grid-column: 1 / -1;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--secondary);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.25rem;
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+        }
+
+        .filter-group { display: flex; flex-direction: column; gap: 0.25rem; }
+        .filter-group label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        select, input {
+            padding: 0.4rem;
+            border-radius: 6px;
+            border: 1px solid var(--input-border);
+            background-color: var(--bg);
+            color: var(--primary);
+            font-size: 0.85rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--secondary);
+        }
+
+        .view-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+        .tab-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background-color: var(--card-bg);
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .tab-btn:hover { background-color: var(--border); }
+        .tab-btn.active {
+            background-color: var(--secondary);
+            color: white;
+            border-color: var(--secondary);
+        }
+
+        .grid-kpi {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .card { background-color: var(--card-bg); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border); }
+        .card-title { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem; }
+        .kpi-value { font-size: 1.8rem; font-weight: 700; color: var(--primary); }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .chart-card { background-color: var(--card-bg); padding: 1rem; border-radius: 8px; border: 1px solid var(--border); height: 300px; display: flex; flex-direction: column; }
+        .chart-wrapper { position: relative; flex-grow: 1; width: 100%; }
+
+        .table-card { background-color: var(--card-bg); border-radius: 8px; border: 1px solid var(--border); overflow-x: auto; }
+        .table-header-flex { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid var(--border); }
+        .table-container { width: 100%; border-collapse: collapse; white-space: nowrap; }
+        .table-container th, .table-container td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+        .table-container th { background-color: var(--bg); color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; }
+        
+        .inline-filter-row th { background-color: var(--card-bg); padding: 0.5rem 1rem; border-bottom: 2px solid var(--border); }
+        .inline-input { width: 100%; min-width: 70px; padding: 0.4rem; font-size: 0.8rem; border: 1px solid var(--input-border); border-radius: 4px; box-sizing: border-box; background-color: var(--bg); color: var(--primary); }
+
+        .badge { padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+        .badge-wf { background-color: var(--border); color: var(--primary); }
+        
+        .btn-action { padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; border: none; }
+        .btn-export { background-color: var(--success); color: #0F172A; }
+        .btn-export:hover { background-color: #059669; color: white; }
+        .btn-add { background-color: var(--bg); border: 1px dashed var(--text-muted); color: var(--primary); }
+        .btn-add:hover { background-color: var(--border); }
+
+        .btn-toggle { background: var(--secondary); color: white; border: none; border-radius: 4px; width: 22px; height: 22px; cursor: pointer; font-weight: bold; line-height: 1; padding: 0; text-align: center; }
+        .btn-toggle:hover { background: #2563EB; }
+        .child-row td { background-color: var(--bg); color: var(--text-muted); }
+        .child-row td:first-child { text-align: right; font-weight: bold; color: var(--input-border); }
+        
+        /* Overrides for dynamic generated elements */
+        td { color: var(--primary); }
+        .child-row td { color: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <div>
+            <h1>Data Annotation Dashboard</h1>
+        </div>
+        <div class="header-actions">
+            <button class="btn-action btn-add" onclick="addNewMetricColumn()">+ Add Custom Metric Field</button>
+            <button class="btn-action btn-export" onclick="exportToCSV()">⭳ Export Data (CSV)</button>
+        </div>
+    </div>
+
+    <div class="filter-bar" style="display: flex;">
+        <div class="filter-group">
+            <label>Timeframe</label>
+            <select id="timeframe" onchange="updateDashboardData()">
+                <option value="today">Today</option>
+                <option value="week" selected>This Week</option>
+                <option value="month">This Month</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Master Workflow</label>
+            <select id="global-workflow" onchange="updateDashboardData()">
+                <option value="all">All Workflows</option>
+                <option value="Chat Intents">Chat Intents</option>
+                <option value="Article Annotations">Article Annotations</option>
+                <option value="ZQA">ZQA</option>
+                <option value="auto">AUTO-ASSIST</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="filter-bar" id="dynamic-choice-filters" style="display: none;"></div>
+
+    <div class="view-tabs">
+        <button class="tab-btn active" id="team-tab" onclick="switchView('team')">Team View</button>
+        <button class="tab-btn" id="member-tab" onclick="switchView('member')">Per Team Member</button>
+        <button class="tab-btn" id="task-tab" onclick="switchView('task')">Per Workflow (Data Points)</button>
+    </div>
+
+    <div class="grid-kpi">
+        <div class="card" id="kpi-card-agr">
+            <div class="card-title">Avg Agreement</div>
+            <div class="kpi-value" id="kpi-agreement">0.00</div>
+        </div>
+        <div class="card" id="kpi-card-acc">
+            <div class="card-title">Accuracy</div>
+            <div class="kpi-value" id="kpi-accuracy">0.0%</div>
+        </div>
+        <div class="card" id="kpi-card-qual" style="border-left: 4px solid var(--secondary);">
+            <div class="card-title" style="color:var(--secondary)">Agreement Score Quality</div>
+            <div class="kpi-value" id="kpi-quality" style="color:var(--secondary)">0.000</div>
+        </div>
+        <div class="card" id="kpi-card-thr">
+            <div class="card-title">Total Throughput</div>
+            <div class="kpi-value" id="kpi-throughput">0</div>
+        </div>
+        <div class="card" id="kpi-card-aht">
+            <div class="card-title">AHT</div>
+            <div class="kpi-value" id="kpi-aht">0m 0s</div>
+        </div>
+    </div>
+
+    <div class="charts-container" id="charts-container">
+        <div class="chart-card" id="chart-card-bar">
+            <div class="card-title" id="bar-chart-title">Project State Progress</div>
+            <div class="chart-wrapper">
+                <canvas id="barChart"></canvas>
+            </div>
+        </div>
+        <div class="chart-card" id="chart-card-doughnut">
+            <div class="card-title" id="doughnut-chart-title">Throughput Distribution</div>
+            <div class="chart-wrapper">
+                <canvas id="doughnutChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div class="table-header-flex">
+            <div style="font-weight: 600; font-size: 1rem;" id="table-view-title">Granular Workflow Breakdown</div>
+        </div>
+        <table class="table-container" id="data-table">
+            
+            <thead id="head-perf">
+                <tr id="table-headers">
+                    <th>Target Scope</th>
+                    <th>Workflow</th>
+                    <th>Project ID</th>
+                    <th>Project Name</th>
+                    <th>Tasks</th>
+                    <th>Progress</th>
+                    <th>Created By</th>
+                    <th>Created At</th>
+                    <th>Throughput</th>
+                    <th>AHT</th>
+                    <th>Agreement</th>
+                    <th>Accuracy</th>
+                    <th style="color:var(--secondary)">Score Quality</th>
+                </tr>
+                <tr class="inline-filter-row">
+                    <th><input type="text" class="inline-input" id="col-scope" placeholder="Contains..." onkeyup="updateDashboardData()"></th>
+                    <th><input type="text" class="inline-input" disabled placeholder="Global Filter"></th>
+                    <th><input type="text" class="inline-input" id="col-proj-id" placeholder="Contains..." onkeyup="updateDashboardData()"></th>
+                    <th><input type="text" class="inline-input" id="col-proj-name" placeholder="Contains..." onkeyup="updateDashboardData()"></th>
+                    <th><input type="text" class="inline-input" id="col-proj-tasks" placeholder="<, >, = ..." onkeyup="updateDashboardData()"></th>
+                    <th><input type="text" class="inline-input" id="col-proj-prog" placeholder="<, >, = %" onkeyup="updateDashboardData()"></th>
+                    <th><input type="text" class="inline-input" id="col-proj-by" placeholder="Contains..." onkeyup="updateDashboardData()"></th>
+                    <th><input type="text" class="inline-input" id="col-proj-at" placeholder="YYYY-MM-DD" onkeyup="updateDashboardData()"></th>
+                    <th><input type="text" class="inline-input" id="col-qty" placeholder="<, >, = ..." onkeyup="updateDashboardData()"></th>
+                    <th><input type="text" class="inline-input" id="col-aht" placeholder="< 4m..." onkeyup="updateDashboardData()"></th>
+                    <th><input type="text" class="inline-input" id="col-agr" placeholder="<, >, = ..." onkeyup="updateDashboardData()"></th>
+                    <th><input type="text" class="inline-input" id="col-acc" placeholder="<, >, = ..." onkeyup="updateDashboardData()"></th>
+                    <th><input type="text" class="inline-input" id="col-qual" placeholder="<, >, = ..." onkeyup="updateDashboardData()"></th>
+                </tr>
+            </thead>
+
+            <thead id="head-task" style="display: none;">
+                <tr>
+                    <th>DP ID</th>
+                    <th>Workflow</th>
+                    <th>Project ID</th>
+                    <th>Project Name</th>
+                    <th>Language</th>
+                    <th>Drafts</th>
+                    <th>Skipped/Canc.</th>
+                    <th>Annotations</th>
+                    <th>Annotators</th>
+                    <th>Annotation Time</th>
+                    <th>Annotation Result</th>
+                    <th>Reviewed</th>
+                    <th>Reviewer</th>
+                    <th>Review Time</th>
+                    <th>Review Accepted</th>
+                    <th>Review Rejected</th>
+                    <th>Created At</th>
+                    <th>Updated At</th>
+                    <th>Updated By</th>
+                </tr>
+                <tr class="inline-filter-row">
+                    <th><input type="text" class="inline-input" id="col-dp-id" placeholder="Contains..." onkeyup="updateDashboardData()"></th>
+                    <th><input type="text" class="inline-input" disabled placeholder="Global Filter"></th>
+                    <th><input type="text" class="inline-input" id="col-dp-proj-id" placeholder="Contains..." onkeyup="updateDashboardData()"></th>
+                    <th><input type="text" class="inline-input" id="col-dp-proj-name" placeholder="Contains..." onkeyup="updateDashboardData()"></th>
+                    <th><input type="text" class="inline-input" id="col-dp-lang" placeholder="Contains..." onkeyup="updateDashboardData()"></th>
+                    <th>
+                        <select class="inline-input" id="col-dp-drafts" onchange="updateDashboardData()">
+                            <option value="">All</option><option value="true">True</option><option value="false">False</option>
+                        </select>
+                    </th>
+                    <th>
+                        <select class="inline-input" id="col-dp-skip" onchange="updateDashboardData()">
+                            <option value="">All</option><option value="true">True</option><option value="false">False</option>
+                        </select>
+                    </th>
+                    <th><input type="text" class="inline-input" id="col-dp-tot" placeholder="<, >, = ..." onkeyup="updateDashboardData()"></th>
+                    <th><input type="text" class="inline-input" id="col-dp-ann" placeholder="!, =, >, <" onkeyup="updateDashboardData()"></th>
+                    <th><input type="text" class="inline-input" id="col-dp-anntime" placeholder="< 4m..." onkeyup="updateDashboardData()"></th>
+                    <th><input type="text" class="inline-input" id="col-dp-annres" placeholder="Choices..." onkeyup="updateDashboardData()"></th>
+                    <th>
+                        <select class="inline-input" id="col-dp-reviewed" onchange="updateDashboardData()">
+                            <option value="">All</option><option value="true">True</option><option value="false">False</option>
+                        </select>
+                    </th>
+                    <th><input type="text" class="inline-input" id="col-dp-reviewer" placeholder="Contains..." onkeyup="updateDashboardData()"></th>
+                    <th><input type="text" class="inline-input" id="col-dp-revtime" placeholder="< 2m..." onkeyup="updateDashboardData()"></th>
+                    <th>
+                        <select class="inline-input" id="col-dp-revacc" onchange="updateDashboardData()">
+                            <option value="">All</option><option value="true">True</option><option value="false">False</option>
+                        </select>
+                    </th>
+                    <th>
+                        <select class="inline-input" id="col-dp-revrej" onchange="updateDashboardData()">
+                            <option value="">All</option><option value="true">True</option><option value="false">False</option>
+                        </select>
+                    </th>
+                    <th><input type="text" class="inline-input" id="col-dp-created" placeholder="YYYY-MM-DD..." onkeyup="updateDashboardData()"></th>
+                    <th><input type="text" class="inline-input" id="col-dp-updated" placeholder="YYYY-MM-DD..." onkeyup="updateDashboardData()"></th>
+                    <th><input type="text" class="inline-input" id="col-dp-updby" placeholder="Contains..." onkeyup="updateDashboardData()"></th>
+                </tr>
+            </thead>
+
+            <tbody id="table-body">
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Set Chart.js Defaults for Dark Mode
+        Chart.defaults.color = '#94A3B8';
+        Chart.defaults.borderColor = '#334155';
+
+        const autoAssistSchema = [
+            { "from_name": "procedure_relevance", "label": "Procedure Relevance", "value": { "choices": ["Relevant", "Irrelevant", "NA"] } },
+            { "from_name": "article_relevance", "label": "Article Relevance", "value": { "choices": ["Relevant", "Irrelevant", "NA"] } },
+            { "from_name": "similar_ticket_1", "label": "Similar Ticket 1 Rel.", "value": { "choices": ["Relevant", "Irrelevant", "NA"] } },
+            { "from_name": "similar_ticket_2", "label": "Similar Ticket 2 Rel.", "value": { "choices": ["Relevant", "Irrelevant", "NA"] } },
+            { "from_name": "aa_action_1", "label": "AA Action 1", "value": { "choices": ["Assessment", "Correct action[s]", "Correct action, wrong parameters[d]", "Wrong action selected[f]", "NA"] } },
+            { "from_name": "aa_action_2", "label": "AA Action 2", "value": { "choices": ["Assessment", "Correct action[s]", "Correct action, wrong parameters[d]", "Wrong action selected[f]", "NA"] } },
+            { "from_name": "aa_reply_comm", "label": "AA Reply: Comm Compliance", "value": { "choices": ["Follows communication guidelines[l]", "Partially follows communication guidelines[n]", "Doesn't follow or contradicts communication guidelines[m]", "NA"] } },
+            { "from_name": "aa_reply_ground", "label": "AA Reply: Groundness", "value": { "choices": ["Reply grounded in Procedure", "Reply grounded in Article", "Reply grounded in Similar tickets", "Reply grounded in Conversation", "NA"] } },
+            { "from_name": "aa_reply_contra", "label": "AA Reply: Contradiction", "value": { "choices": ["Reply contradicts with Procedure", "Reply contradicts with Article", "Reply contradicts with Similar tickets", "Reply contradicts with Conversation", "NA"] } },
+            { "from_name": "aa_reply_omit", "label": "AA Reply: Omitted Info", "value": { "choices": ["Omitted from Procedure", "Omitted from Article", "Omitted from Similar tickets", "Omitted from Conversation", "Omitted from Ticket context", "NA"] } },
+            { "from_name": "ha_reply_comm", "label": "HA Reply: Comm Compliance", "value": { "choices": ["Follows communication guidelines[l]", "Partially follows communication guidelines[n]", "Doesn't follow or contradicts communication guidelines[m]", "NA"] } },
+            { "from_name": "ha_reply_ground", "label": "HA Reply: Groundness", "value": { "choices": ["Reply grounded in Procedure", "Reply grounded in Article", "Reply grounded in Similar tickets", "Reply grounded in Conversation", "NA"] } },
+            { "from_name": "ha_reply_contra", "label": "HA Reply: Contradiction", "value": { "choices": ["Reply contradicts with Procedure", "Reply contradicts with Article", "Reply contradicts with Similar tickets", "Reply contradicts with Conversation", "NA"] } },
+            { "from_name": "ha_reply_omit", "label": "HA Reply: Omitted Info", "value": { "choices": ["Omitted from Procedure", "Omitted from Article", "Omitted from Similar tickets", "Omitted from Conversation", "Omitted from Ticket context", "NA"] } }
+        ];
+
+        const mockData = {
+            team: [
+                { scope: "Entire Team", wf: "Chat Intents", proj_id: "PRJ-101", proj_name: "Q2 Intents Tracking", proj_done: 1500, proj_total: 1500, proj_by: "Ops Team", proj_at: "2026-05-15", qty: 1500, aht: "3m 45s", agr: 0.47, acc: "98.5%", qual: 0.463 },
+                { scope: "Entire Team", wf: "auto", proj_id: "PRJ-201", proj_name: "Auto-Assist Beta", proj_done: 450, proj_total: 500, proj_by: "Science Team", proj_at: "2026-06-01", qty: 450, aht: "4m 00s", agr: 0.46, acc: "98.5%", qual: 0.453 },
+                { scope: "Entire Team", wf: "auto", proj_id: "PRJ-202", proj_name: "Auto-Assist Edge Cases", proj_done: 500, proj_total: 1000, proj_by: "Ops Team", proj_at: "2026-06-10", qty: 500, aht: "4m 20s", agr: 0.44, acc: "97.5%", qual: 0.429 },
+                { scope: "Entire Team", wf: "Article Annotations", proj_id: "PRJ-301", proj_name: "Help Center Q1", proj_done: 800, proj_total: 800, proj_by: "Content Team", proj_at: "2026-01-15", qty: 800, aht: "5m 10s", agr: 0.48, acc: "99.0%", qual: 0.475 },
+                { scope: "Entire Team", wf: "Article Annotations", proj_id: "PRJ-302", proj_name: "Help Center Q2", proj_done: 600, proj_total: 800, proj_by: "Content Team", proj_at: "2026-04-01", qty: 600, aht: "5m 30s", agr: 0.45, acc: "98.0%", qual: 0.441 },
+                { scope: "Entire Team", wf: "Article Annotations", proj_id: "PRJ-303", proj_name: "Blog Post Tags", proj_done: 1200, proj_total: 1200, proj_by: "Marketing", proj_at: "2026-05-20", qty: 1200, aht: "2m 15s", agr: 0.49, acc: "99.5%", qual: 0.487 },
+                { scope: "Entire Team", wf: "Article Annotations", proj_id: "PRJ-304", proj_name: "KB Overhaul", proj_done: 150, proj_total: 2000, proj_by: "Science Team", proj_at: "2026-06-20", qty: 150, aht: "6m 00s", agr: 0.41, acc: "96.0%", qual: 0.393 }
+            ],
+            member: [
+                { scope: "Annotator 1", wf: "Chat Intents", proj_id: "PRJ-101", proj_name: "Q2 Intents Tracking", proj_done: 1500, proj_total: 1500, proj_by: "Ops Team", proj_at: "2026-05-15", qty: 750, aht: "3m 20s", agr: 0.47, acc: "99.0%", qual: 0.465 },
+                { scope: "Annotator 1", wf: "auto", proj_id: "PRJ-201", proj_name: "Auto-Assist Beta", proj_done: 450, proj_total: 500, proj_by: "Science Team", proj_at: "2026-06-01", qty: 450, aht: "4m 45s", agr: 0.44, acc: "98.8%", qual: 0.435 },
+                { scope: "Annotator 1", wf: "Article Annotations", proj_id: "PRJ-301", proj_name: "Help Center Q1", proj_done: 800, proj_total: 800, proj_by: "Content Team", proj_at: "2026-01-15", qty: 400, aht: "5m 00s", agr: 0.48, acc: "99.0%", qual: 0.475 },
+                { scope: "Annotator 1", wf: "Article Annotations", proj_id: "PRJ-302", proj_name: "Help Center Q2", proj_done: 600, proj_total: 800, proj_by: "Content Team", proj_at: "2026-04-01", qty: 300, aht: "5m 15s", agr: 0.46, acc: "98.5%", qual: 0.453 },
+                { scope: "Annotator 1", wf: "Article Annotations", proj_id: "PRJ-303", proj_name: "Blog Post Tags", proj_done: 1200, proj_total: 1200, proj_by: "Marketing", proj_at: "2026-05-20", qty: 600, aht: "2m 10s", agr: 0.49, acc: "99.5%", qual: 0.487 },
+                { scope: "Annotator 1", wf: "Article Annotations", proj_id: "PRJ-304", proj_name: "KB Overhaul", proj_done: 150, proj_total: 2000, proj_by: "Science Team", proj_at: "2026-06-20", qty: 75, aht: "5m 50s", agr: 0.42, acc: "96.5%", qual: 0.405 },
+
+                { scope: "Annotator 2", wf: "Chat Intents", proj_id: "PRJ-101", proj_name: "Q2 Intents Tracking", proj_done: 1500, proj_total: 1500, proj_by: "Ops Team", proj_at: "2026-05-15", qty: 750, aht: "3m 50s", agr: 0.47, acc: "98.0%", qual: 0.460 },
+                { scope: "Annotator 2", wf: "auto", proj_id: "PRJ-202", proj_name: "Auto-Assist Edge Cases", proj_done: 500, proj_total: 1000, proj_by: "Ops Team", proj_at: "2026-06-10", qty: 500, aht: "4m 20s", agr: 0.44, acc: "97.5%", qual: 0.429 },
+                { scope: "Annotator 2", wf: "Article Annotations", proj_id: "PRJ-301", proj_name: "Help Center Q1", proj_done: 800, proj_total: 800, proj_by: "Content Team", proj_at: "2026-01-15", qty: 400, aht: "5m 20s", agr: 0.47, acc: "99.0%", qual: 0.465 },
+                { scope: "Annotator 2", wf: "Article Annotations", proj_id: "PRJ-302", proj_name: "Help Center Q2", proj_done: 600, proj_total: 800, proj_by: "Content Team", proj_at: "2026-04-01", qty: 300, aht: "5m 45s", agr: 0.44, acc: "97.5%", qual: 0.429 },
+                { scope: "Annotator 2", wf: "Article Annotations", proj_id: "PRJ-303", proj_name: "Blog Post Tags", proj_done: 1200, proj_total: 1200, proj_by: "Marketing", proj_at: "2026-05-20", qty: 600, aht: "2m 20s", agr: 0.48, acc: "99.0%", qual: 0.475 },
+                { scope: "Annotator 2", wf: "Article Annotations", proj_id: "PRJ-304", proj_name: "KB Overhaul", proj_done: 150, proj_total: 2000, proj_by: "Science Team", proj_at: "2026-06-20", qty: 75, aht: "6m 10s", agr: 0.40, acc: "95.5%", qual: 0.382 }
+            ],
+            task: [
+                { 
+                    id: "DP-8849-XYZ", wf: "auto", proj_id: "PRJ-201", proj_name: "Auto-Assist Beta", total: 3, cancelled: 0, skipped: 0, annotators: "Annotator 1, Annotator 2",
+                    language: "English", reviewer: "Reviewer 1", reviewed: true, review_accepted: true, review_rejected: false, 
+                    annotation_result: '{"procedure_relevance":"Relevant"}', annotation_time: "2m 15s", review_time: "1m 10s",
+                    created_at: "2026-06-23", updated_at: "2026-06-24", updated_by: "Reviewer 1", drafts: false,
+                    choices: { "procedure_relevance": "Relevant", "article_relevance": "Irrelevant", "aa_reply_ground": "Reply grounded in Procedure" }
+                },
+                { 
+                    id: "DP-8850-ABC", wf: "auto", proj_id: "PRJ-202", proj_name: "Auto-Assist Edge Cases", total: 2, cancelled: 1, skipped: 0, annotators: "Annotator 2, Annotator 4",
+                    language: "Spanish", reviewer: "Reviewer 2", reviewed: false, review_accepted: false, review_rejected: false, 
+                    annotation_result: '{"procedure_relevance":"NA"}', annotation_time: "3m 45s", review_time: "0m 0s",
+                    created_at: "2026-06-22", updated_at: "2026-06-23", updated_by: "Annotator 4", drafts: true,
+                    choices: { "procedure_relevance": "NA", "article_relevance": "Relevant", "aa_reply_ground": "Reply grounded in Conversation" }
+                },
+                { 
+                    id: "DP-1001-INT", wf: "Chat Intents", proj_id: "PRJ-101", proj_name: "Q2 Intents Tracking", total: 5, cancelled: 0, skipped: 1, annotators: "Annotator 1",
+                    language: "English", reviewer: "", reviewed: false, review_accepted: false, review_rejected: false, 
+                    annotation_result: '{"intent":"Billing"}', annotation_time: "1m 30s", review_time: "0m 0s",
+                    created_at: "2026-06-24", updated_at: "2026-06-24", updated_by: "Annotator 1", drafts: false,
+                    choices: {} 
+                },
+                { 
+                    id: "DP-3001-ART", wf: "Article Annotations", proj_id: "PRJ-301", proj_name: "Help Center Q1", total: 2, cancelled: 0, skipped: 0, annotators: "Annotator 1, Annotator 2",
+                    language: "English", reviewer: "Reviewer 1", reviewed: true, review_accepted: true, review_rejected: false, 
+                    annotation_result: '{"tag":"Billing Policies"}', annotation_time: "5m 15s", review_time: "1m 10s",
+                    created_at: "2026-02-10", updated_at: "2026-02-12", updated_by: "Reviewer 1", drafts: false,
+                    choices: {}
+                }
+            ]
+        };
+
+        let currentView = 'team';
+        let currentlyFilteredData = [];
+        let myBarChart, myDoughnutChart;
+
+        function buildDynamicFilters() {
+            const container = document.getElementById('dynamic-choice-filters');
+            const header = document.createElement('div');
+            header.className = 'section-title';
+            header.innerText = "Quality Evaluation Filters";
+            container.appendChild(header);
+
+            autoAssistSchema.forEach(item => {
+                const group = document.createElement('div');
+                group.className = 'filter-group';
+                const label = document.createElement('label');
+                label.innerText = item.label; 
+                const select = document.createElement('select');
+                select.id = `dyn-${item.from_name}`;
+                select.onchange = updateDashboardData;
+                const defaultOpt = document.createElement('option');
+                defaultOpt.value = ""; defaultOpt.innerText = "Any / All";
+                select.appendChild(defaultOpt);
+                item.value.choices.forEach(choice => {
+                    const opt = document.createElement('option');
+                    opt.value = choice; opt.innerText = choice; select.appendChild(opt);
+                });
+                group.appendChild(label); group.appendChild(select); container.appendChild(group);
+            });
+        }
+
+        function switchView(view) {
+            currentView = view;
+            
+            document.getElementById('team-tab').classList.toggle('active', view === 'team');
+            document.getElementById('member-tab').classList.toggle('active', view === 'member');
+            document.getElementById('task-tab').classList.toggle('active', view === 'task');
+            
+            if(view === 'task') {
+                document.getElementById('table-view-title').innerText = "Data Point Annotation Breakdown";
+                document.getElementById('head-perf').style.display = "none";
+                document.getElementById('head-task').style.display = "table-header-group";
+                
+                document.getElementById('kpi-card-agr').style.display = "none";
+                document.getElementById('kpi-card-acc').style.display = "none";
+                document.getElementById('kpi-card-qual').style.display = "none";
+                document.getElementById('kpi-card-aht').style.display = "none";
+                
+                document.getElementById('chart-card-bar').style.display = "none";
+                document.getElementById('charts-container').style.gridTemplateColumns = "1fr";
+            } else {
+                document.getElementById('table-view-title').innerText = view === 'team' ? "Granular Team Breakdown" : "Individual Annotator Breakdown";
+                document.getElementById('head-task').style.display = "none";
+                document.getElementById('head-perf').style.display = "table-header-group";
+                
+                document.getElementById('kpi-card-agr').style.display = "block";
+                document.getElementById('kpi-card-acc').style.display = "block";
+                document.getElementById('kpi-card-qual').style.display = "block";
+                document.getElementById('kpi-card-aht').style.display = "block";
+                
+                document.getElementById('chart-card-bar').style.display = "flex";
+                document.getElementById('charts-container').style.gridTemplateColumns = "2fr 1fr";
+            }
+
+            updateDashboardData();
+        }
+
+        // Toggle Expand/Collapse for Project Rows
+        function toggleGroup(grpClass, btnEl) {
+            let rows = document.querySelectorAll('.' + grpClass);
+            let isHidden = rows[0].style.display === 'none';
+            rows.forEach(r => r.style.display = isHidden ? 'table-row' : 'none');
+            btnEl.innerText = isHidden ? '-' : '+';
+        }
+
+        function evaluateNumeric(cellValue, filterStr) {
+            if (!filterStr || filterStr.trim() === "") return true;
+            let text = filterStr.trim();
+            let operator = "="; let numText = text;
+            const match = text.match(/^(>=|<=|>|<|=|!=)\s*(.*)$/);
+            if (match) { operator = match[1]; numText = match[2]; }
+            let filterVal = parseFloat(numText);
+            if (isNaN(filterVal)) return true;
+            let cellVal = parseFloat(cellValue); 
+            switch (operator) {
+                case '>': return cellVal > filterVal; case '<': return cellVal < filterVal;
+                case '>=': return cellVal >= filterVal; case '<=': return cellVal <= filterVal;
+                case '=': return cellVal === filterVal; case '!=': return cellVal !== filterVal;
+                default: return true;
+            }
+        }
+
+        function evaluateAHT(ahtStr, filterStr) {
+            if (!filterStr || filterStr.trim() === "") return true;
+            function toSecs(str) {
+                if (!str) return 0;
+                let m = str.toString().match(/(\d+)\s*m/i); let s = str.toString().match(/(\d+)\s*s/i);
+                if (!m && !s) return parseFloat(str) || 0;
+                return ((m ? parseInt(m[1]) : 0) * 60) + (s ? parseInt(s[1]) : 0);
+            }
+            let text = filterStr.trim(); let operator = "="; let timeText = text;
+            const match = text.match(/^(>=|<=|>|<|=|!=)\s*(.*)$/);
+            if (match) { operator = match[1]; timeText = match[2]; }
+            let filterVal = toSecs(timeText); let cellVal = toSecs(ahtStr);
+            switch (operator) {
+                case '>': return cellVal > filterVal; case '<': return cellVal < filterVal;
+                case '>=': return cellVal >= filterVal; case '<=': return cellVal <= filterVal;
+                case '=': return cellVal === filterVal; case '!=': return cellVal !== filterVal;
+                default: return true;
+            }
+        }
+
+        function evaluateAnnotatorsFilter(annotatorsStr, filterStr) {
+            if (!filterStr || filterStr.trim() === "") return true;
+            let text = filterStr.trim();
+            let operatorMatch = text.match(/^(>=|<=|>|<|=|!=)\s*(\d+)$/);
+            if (operatorMatch) {
+                let op = operatorMatch[1];
+                let val = parseInt(operatorMatch[2]);
+                let count = annotatorsStr ? annotatorsStr.split(',').length : 0;
+                switch(op) {
+                    case '>': return count > val; case '<': return count < val;
+                    case '>=': return count >= val; case '<=': return count <= val;
+                    case '=': return count === val; case '!=': return count !== val;
+                }
+            }
+            if (text.startsWith('!')) {
+                let search = text.substring(1).trim().toLowerCase();
+                return !annotatorsStr.toLowerCase().includes(search);
+            }
+            return annotatorsStr.toLowerCase().includes(text.toLowerCase());
+        }
+
+        function toSecs(str) {
+            if (!str) return 0;
+            let m = str.toString().match(/(\d+)\s*m/i); let s = str.toString().match(/(\d+)\s*s/i);
+            if (!m && !s) return parseFloat(str) || 0;
+            return ((m ? parseInt(m[1]) : 0) * 60) + (s ? parseInt(s[1]) : 0);
+        }
+
+        function formatProgress(done, total) {
+            let pct = total ? Math.round((done/total)*100) : 0;
+            return `<div style="display:flex; align-items:center; gap:5px;">
+                        <div style="background: var(--border); border-radius: 4px; width: 60px; height: 6px;">
+                            <div style="background: var(--success); height: 100%; border-radius: 4px; width: ${pct}%;"></div>
+                        </div>
+                        <span style="font-size:0.75rem">${pct}%</span>
+                    </div>`;
+        }
+
+        function updateCharts() {
+            const ctxBar = document.getElementById('barChart').getContext('2d');
+            const ctxDoughnut = document.getElementById('doughnutChart').getContext('2d');
+
+            if (myBarChart) myBarChart.destroy();
+            if (myDoughnutChart) myDoughnutChart.destroy();
+
+            // Doughnut Chart Setup
+            let wfCounts = {};
+            currentlyFilteredData.forEach(row => {
+                let key = row.wf === 'auto' ? 'Auto-Assist' : row.wf;
+                let val = currentView === 'task' ? 1 : row.qty;
+                wfCounts[key] = (wfCounts[key] || 0) + val;
+            });
+
+            myDoughnutChart = new Chart(ctxDoughnut, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(wfCounts),
+                    datasets: [{
+                        data: Object.values(wfCounts),
+                        backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#6366F1'],
+                        borderColor: '#1E293B',
+                        borderWidth: 2
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94A3B8' } } } }
+            });
+
+            // Project State Progress Chart (Horizontal Bar Chart)
+            if (currentView !== 'task') {
+                let projectMap = {};
+                
+                // Aggregate unique projects in the current filtered view to calculate overall progress
+                currentlyFilteredData.forEach(row => {
+                    if (row.proj_id && !projectMap[row.proj_id]) {
+                        projectMap[row.proj_id] = {
+                            name: row.proj_name,
+                            done: row.proj_done,
+                            total: row.proj_total
+                        };
+                    }
+                });
+
+                let projLabels = [];
+                let projProgressData = [];
+                
+                Object.values(projectMap).forEach(p => {
+                    projLabels.push(p.name);
+                    let pct = p.total ? Math.round((p.done / p.total) * 100) : 0;
+                    projProgressData.push(pct);
+                });
+                
+                myBarChart = new Chart(ctxBar, {
+                    type: 'bar',
+                    data: {
+                        labels: projLabels,
+                        datasets: [
+                            { 
+                                label: "Completion (%)", 
+                                data: projProgressData, 
+                                backgroundColor: '#10B981', // green success color
+                                borderRadius: 4 
+                            }
+                        ]
+                    },
+                    options: {
+                        indexAxis: 'y', // Makes it a horizontal bar chart
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { 
+                                type: 'linear', 
+                                display: true, 
+                                beginAtZero: true, 
+                                max: 100,
+                                title: {
+                                    display: true,
+                                    text: '% Completed',
+                                    color: '#94A3B8'
+                                }
+                            },
+                            y: { 
+                                display: true, 
+                                grid: { drawOnChartArea: false } 
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.raw + '% Completed';
+                                    }
+                                }
+                            },
+                            legend: {
+                                labels: { color: '#94A3B8' }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateDashboardData() {
+            let dataPool = mockData[currentView];
+            const gWf = document.getElementById('global-workflow').value;
+            
+            const dynFilterContainer = document.getElementById('dynamic-choice-filters');
+            dynFilterContainer.style.display = (currentView === 'task' && gWf === 'auto') ? "grid" : "none";
+
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = "";
+
+            let totalThroughput = 0;
+            currentlyFilteredData = [];
+
+            if (currentView === 'task') {
+                dataPool.forEach(row => {
+                    if (gWf !== 'all' && row.wf !== gWf) return;
+
+                    const fId = document.getElementById('col-dp-id').value.toLowerCase();
+                    const fProjId = document.getElementById('col-dp-proj-id').value.toLowerCase();
+                    const fProjName = document.getElementById('col-dp-proj-name').value.toLowerCase();
+                    const fTot = document.getElementById('col-dp-tot').value;
+                    const fSkip = document.getElementById('col-dp-skip').value;
+                    const fAnn = document.getElementById('col-dp-ann').value;
+                    const fLang = document.getElementById('col-dp-lang').value.toLowerCase();
+                    const fRev = document.getElementById('col-dp-reviewer').value.toLowerCase();
+                    const fReviewed = document.getElementById('col-dp-reviewed').value;
+                    const fRevAcc = document.getElementById('col-dp-revacc').value;
+                    const fRevRej = document.getElementById('col-dp-revrej').value;
+                    const fAnnRes = document.getElementById('col-dp-annres').value.toLowerCase();
+                    const fAnnTime = document.getElementById('col-dp-anntime').value;
+                    const fRevTime = document.getElementById('col-dp-revtime').value;
+                    const fCreated = document.getElementById('col-dp-created').value.toLowerCase();
+                    const fUpdated = document.getElementById('col-dp-updated').value.toLowerCase();
+                    const fUpdBy = document.getElementById('col-dp-updby').value.toLowerCase();
+                    const fDraft = document.getElementById('col-dp-drafts').value;
+
+                    if (!row.id.toLowerCase().includes(fId)) return;
+                    if (!row.proj_id.toLowerCase().includes(fProjId)) return;
+                    if (!row.proj_name.toLowerCase().includes(fProjName)) return;
+                    if (!evaluateNumeric(row.total, fTot)) return;
+                    if (!evaluateAnnotatorsFilter(row.annotators, fAnn)) return;
+                    if (fSkip !== "" && ((row.skipped + row.cancelled > 0).toString() !== fSkip)) return;
+                    if (!row.language.toLowerCase().includes(fLang)) return;
+                    if (!row.reviewer.toLowerCase().includes(fRev)) return;
+                    if (fReviewed !== "" && row.reviewed.toString() !== fReviewed) return;
+                    if (fRevAcc !== "" && row.review_accepted.toString() !== fRevAcc) return;
+                    if (fRevRej !== "" && row.review_rejected.toString() !== fRevRej) return;
+                    if (!row.annotation_result.toLowerCase().includes(fAnnRes)) return;
+                    if (!evaluateAHT(row.annotation_time, fAnnTime)) return;
+                    if (!evaluateAHT(row.review_time, fRevTime)) return;
+                    if (!row.created_at.toLowerCase().includes(fCreated)) return;
+                    if (!row.updated_at.toLowerCase().includes(fUpdated)) return;
+                    if (!row.updated_by.toLowerCase().includes(fUpdBy)) return;
+                    if (fDraft !== "" && row.drafts.toString() !== fDraft) return;
+
+                    if (gWf === 'auto') {
+                        let matchesChoices = true;
+                        autoAssistSchema.forEach(item => {
+                            const selectedChoice = document.getElementById(`dyn-${item.from_name}`).value;
+                            if (selectedChoice !== "") {
+                                const rowChoiceVal = row.choices[item.from_name] || "NA"; 
+                                if (rowChoiceVal !== selectedChoice) matchesChoices = false;
+                            }
+                        });
+                        if (!matchesChoices) return;
+                    }
+
+                    totalThroughput += 1; 
+                    currentlyFilteredData.push(row);
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${row.id}</strong></td>
+                        <td><span class="badge badge-wf">${row.wf === 'auto' ? 'AUTO-ASSIST' : row.wf}</span></td>
+                        <td>${row.proj_id}</td>
+                        <td>${row.proj_name}</td>
+                        <td>${row.language}</td>
+                        <td>${row.drafts}</td>
+                        <td><span style="color:var(--warning)">${row.skipped}</span> / <span style="color:#EF4444">${row.cancelled}</span></td>
+                        <td>${row.total}</td>
+                        <td><span style="font-size:0.8rem">${row.annotators}</span></td>
+                        <td>${row.annotation_time}</td>
+                        <td style="font-size:0.75rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis;" title='${row.annotation_result}'>${row.annotation_result}</td>
+                        <td>${row.reviewed}</td>
+                        <td>${row.reviewer}</td>
+                        <td>${row.review_time}</td>
+                        <td>${row.review_accepted}</td>
+                        <td>${row.review_rejected}</td>
+                        <td>${row.created_at}</td>
+                        <td>${row.updated_at}</td>
+                        <td>${row.updated_by}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                let filteredPerfRows = [];
+                dataPool.forEach(row => {
+                    if (gWf !== 'all' && row.wf !== gWf) return;
+
+                    const fScope = document.getElementById('col-scope').value.toLowerCase();
+                    const fProjId = document.getElementById('col-proj-id').value.toLowerCase();
+                    const fProjName = document.getElementById('col-proj-name').value.toLowerCase();
+                    const fProjTasks = document.getElementById('col-proj-tasks').value;
+                    const fProjProg = document.getElementById('col-proj-prog').value.replace('%','');
+                    const fProjBy = document.getElementById('col-proj-by').value.toLowerCase();
+                    const fProjAt = document.getElementById('col-proj-at').value.toLowerCase();
+                    
+                    const fQty = document.getElementById('col-qty').value;
+                    const fAht = document.getElementById('col-aht').value;
+                    const fAgr = document.getElementById('col-agr').value;
+                    const fAcc = document.getElementById('col-acc').value;
+                    const fQual = document.getElementById('col-qual').value;
+
+                    if (!row.scope.toLowerCase().includes(fScope)) return;
+                    if (!row.proj_id.toLowerCase().includes(fProjId)) return;
+                    if (!row.proj_name.toLowerCase().includes(fProjName)) return;
+                    if (!evaluateNumeric(row.proj_done, fProjTasks)) return;
+                    let progPct = row.proj_total ? Math.round((row.proj_done/row.proj_total)*100) : 0;
+                    if (!evaluateNumeric(progPct, fProjProg)) return;
+                    if (!row.proj_by.toLowerCase().includes(fProjBy)) return;
+                    if (!row.proj_at.toLowerCase().includes(fProjAt)) return;
+
+                    if (!evaluateNumeric(row.qty, fQty)) return;
+                    if (!evaluateAHT(row.aht, fAht)) return;
+                    if (!evaluateNumeric(row.agr, fAgr)) return;
+                    if (!evaluateNumeric(parseFloat(row.acc), fAcc)) return;
+                    if (!evaluateNumeric(row.qual, fQual)) return;
+
+                    filteredPerfRows.push(row);
+                    currentlyFilteredData.push(row);
+                });
+
+                let groups = {};
+                filteredPerfRows.forEach(row => {
+                    let key = row.scope + "|||" + row.wf;
+                    if (!groups[key]) groups[key] = [];
+                    groups[key].push(row);
+                });
+
+                let grpIndex = 0;
+                let grandQty = 0, grandSecs = 0, grandAgr = 0, grandAcc = 0, grandQual = 0;
+
+                for (let key in groups) {
+                    grpIndex++;
+                    let rows = groups[key];
+                    let scope = rows[0].scope;
+                    let wf = rows[0].wf;
+
+                    let sumQty = 0, sumSecs = 0, sumAgr = 0, sumAcc = 0, sumQual = 0;
+                    let sumProjDone = 0, sumProjTotal = 0;
+                    let uniqueProjects = new Set();
+
+                    rows.forEach(r => {
+                        sumQty += r.qty;
+                        sumSecs += toSecs(r.aht) * r.qty;
+                        sumAgr += r.agr * r.qty;
+                        sumAcc += parseFloat(r.acc) * r.qty;
+                        sumQual += r.qual * r.qty;
+                        
+                        if(!uniqueProjects.has(r.proj_id)) {
+                            uniqueProjects.add(r.proj_id);
+                            sumProjDone += r.proj_done;
+                            sumProjTotal += r.proj_total;
+                        }
+                    });
+
+                    grandQty += sumQty;
+                    grandSecs += sumSecs; grandAgr += sumAgr; grandAcc += sumAcc; grandQual += sumQual;
+
+                    let avgSecs = sumQty ? Math.round(sumSecs / sumQty) : 0;
+                    let avgAht = `${Math.floor(avgSecs/60)}m ${avgSecs%60}s`;
+                    let avgAgr = sumQty ? (sumAgr / sumQty).toFixed(2) : 0;
+                    let avgAcc = sumQty ? (sumAcc / sumQty).toFixed(1) + "%" : 0;
+                    let avgQual = sumQty ? (sumQual / sumQty).toFixed(3) : 0;
+
+                    let isMultiple = rows.length > 1;
+
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="font-weight:700; color:var(--primary);">${scope}</td>
+                        <td>
+                            ${isMultiple ? `<button class="btn-toggle" onclick="toggleGroup('grp-${grpIndex}', this)">+</button>` : ''}
+                            <span class="badge badge-wf">${wf === 'auto' ? 'AUTO-ASSIST' : wf}</span>
+                        </td>
+                        <td style="color:var(--text-muted)">${isMultiple ? `Multiple (${uniqueProjects.size})` : rows[0].proj_id}</td>
+                        <td style="color:var(--text-muted)">${isMultiple ? `-` : rows[0].proj_name}</td>
+                        <td>${sumProjDone} / ${sumProjTotal}</td>
+                        <td>${formatProgress(sumProjDone, sumProjTotal)}</td>
+                        <td style="color:var(--text-muted)">${isMultiple ? `-` : rows[0].proj_by}</td>
+                        <td style="color:var(--text-muted)">${isMultiple ? `-` : rows[0].proj_at}</td>
+                        <td style="font-weight:600;">${sumQty}</td>
+                        <td style="font-weight:600;">${avgAht}</td>
+                        <td style="font-weight:600;">${avgAgr}</td>
+                        <td style="font-weight:600;">${avgAcc}</td>
+                        <td style="color:var(--secondary); font-weight:bold;">${avgQual}</td>
+                    `;
+                    tbody.appendChild(tr);
+
+                    if (isMultiple) {
+                        rows.forEach(r => {
+                            let trChild = document.createElement('tr');
+                            trChild.className = `grp-${grpIndex} child-row`;
+                            trChild.style.display = "none";
+                            trChild.innerHTML = `
+                                <td>↳</td>
+                                <td></td>
+                                <td>${r.proj_id}</td>
+                                <td>${r.proj_name}</td>
+                                <td>${r.proj_done} / ${r.proj_total}</td>
+                                <td>${formatProgress(r.proj_done, r.proj_total)}</td>
+                                <td>${r.proj_by}</td>
+                                <td>${r.proj_at}</td>
+                                <td>${r.qty}</td>
+                                <td>${r.aht}</td>
+                                <td>${r.agr}</td>
+                                <td>${r.acc}</td>
+                                <td>${r.qual}</td>
+                            `;
+                            tbody.appendChild(trChild);
+                        });
+                    }
+                }
+
+                totalThroughput = grandQty;
+                if(grandQty > 0) {
+                    let gAvgSecs = Math.round(grandSecs / grandQty);
+                    document.getElementById('kpi-agreement').innerText = (grandAgr / grandQty).toFixed(2);
+                    document.getElementById('kpi-accuracy').innerText = (grandAcc / grandQty).toFixed(1) + "%";
+                    document.getElementById('kpi-quality').innerText = (grandQual / grandQty).toFixed(3);
+                    document.getElementById('kpi-aht').innerText = `${Math.floor(gAvgSecs/60)}m ${gAvgSecs%60}s`;
+                } else {
+                    document.getElementById('kpi-agreement').innerText = "N/A";
+                    document.getElementById('kpi-accuracy').innerText = "N/A";
+                    document.getElementById('kpi-quality').innerText = "N/A";
+                    document.getElementById('kpi-aht').innerText = "N/A";
+                }
+            }
+
+            if(currentView === 'task') {
+                document.getElementById('kpi-throughput').innerText = totalThroughput.toLocaleString();
+            } else {
+                document.getElementById('kpi-throughput').innerText = totalThroughput.toLocaleString();
+            }
+            
+            updateCharts();
+        }
+
+        function exportToCSV() {
+            if (currentlyFilteredData.length === 0) { alert("No data available to export."); return; }
+            let csvContent = "data:text/csv;charset=utf-8,";
+            let headers = Object.keys(currentlyFilteredData[0]).filter(key => key !== 'choices');
+            
+            const gWf = document.getElementById('global-workflow').value;
+            if (currentView === 'task' && gWf === 'auto') {
+                autoAssistSchema.forEach(schema => headers.push(schema.from_name));
+            }
+
+            csvContent += headers.join(",") + "\r\n";
+            currentlyFilteredData.forEach(row => {
+                let rowData = headers.map(header => {
+                    if (autoAssistSchema.some(s => s.from_name === header)) {
+                        return row.choices && row.choices[header] ? `"${row.choices[header]}"` : '"NA"';
+                    }
+                    let val = row[header] === undefined ? "" : row[header];
+                    if(typeof val === 'string' && val.includes('"')) val = val.replace(/"/g, '""');
+                    return `"${val}"`; 
+                });
+                csvContent += rowData.join(",") + "\r\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Data_Export_${currentView}_${new Date().getTime()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        window.onload = () => { buildDynamicFilters(); updateDashboardData(); };
+    </script>
+</body>
+</html>
