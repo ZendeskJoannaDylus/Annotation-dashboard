@@ -251,6 +251,7 @@
                     <th>Project Name</th>
                     <th>Tasks</th>
                     <th>Progress</th>
+                    <th>QA Progress</th>
                     <th>Created By</th>
                     <th>Created At</th>
                     <th>Throughput</th>
@@ -266,6 +267,7 @@
                     <th><input type="text" class="inline-input" id="col-proj-name" placeholder="Contains..." onkeyup="updateDashboardData()"></th>
                     <th><input type="text" class="inline-input" id="col-proj-tasks" placeholder="<, >, = ..." onkeyup="updateDashboardData()"></th>
                     <th><input type="text" class="inline-input" id="col-proj-prog" placeholder="<, >, = %" onkeyup="updateDashboardData()"></th>
+                    <th><input type="text" class="inline-input" id="col-proj-qaprog" placeholder="<, >, = %" onkeyup="updateDashboardData()"></th>
                     <th><input type="text" class="inline-input" id="col-proj-by" placeholder="Contains..." onkeyup="updateDashboardData()"></th>
                     <th><input type="text" class="inline-input" id="col-proj-at" placeholder="YYYY-MM-DD" onkeyup="updateDashboardData()"></th>
                     <th><input type="text" class="inline-input" id="col-qty" placeholder="<, >, = ..." onkeyup="updateDashboardData()"></th>
@@ -283,6 +285,8 @@
                     <th>Project ID</th>
                     <th>Project Name</th>
                     <th>Language</th>
+                    <th>Brand</th>
+                    <th>Intent</th>
                     <th>Drafts</th>
                     <th>Skipped/Canc.</th>
                     <th>Annotations</th>
@@ -304,6 +308,8 @@
                     <th><input type="text" class="inline-input" id="col-dp-proj-id" placeholder="Contains..." onkeyup="updateDashboardData()"></th>
                     <th><input type="text" class="inline-input" id="col-dp-proj-name" placeholder="Contains..." onkeyup="updateDashboardData()"></th>
                     <th><input type="text" class="inline-input" id="col-dp-lang" placeholder="Contains..." onkeyup="updateDashboardData()"></th>
+                    <th><input type="text" class="inline-input" id="col-dp-brand" placeholder="Contains..." onkeyup="updateDashboardData()"></th>
+                    <th><input type="text" class="inline-input" id="col-dp-intent" placeholder="Contains..." onkeyup="updateDashboardData()"></th>
                     <th>
                         <select class="inline-input" id="col-dp-drafts" onchange="updateDashboardData()">
                             <option value="">All</option><option value="true">True</option><option value="false">False</option>
@@ -370,54 +376,54 @@
 
         const mockData = {
             team: [
-                { scope: "Entire Team", wf: "Chat Intents", proj_id: "PRJ-101", proj_name: "Q2 Intents Tracking", proj_done: 1500, proj_total: 1500, proj_by: "Ops Team", proj_at: "2026-05-15", qty: 1500, aht: "3m 45s", agr: 0.47, acc: "98.5%", qual: 0.463 },
-                { scope: "Entire Team", wf: "auto", proj_id: "PRJ-201", proj_name: "Auto-Assist Beta", proj_done: 450, proj_total: 500, proj_by: "Science Team", proj_at: "2026-06-01", qty: 450, aht: "4m 00s", agr: 0.46, acc: "98.5%", qual: 0.453 },
-                { scope: "Entire Team", wf: "auto", proj_id: "PRJ-202", proj_name: "Auto-Assist Edge Cases", proj_done: 500, proj_total: 1000, proj_by: "Ops Team", proj_at: "2026-06-10", qty: 500, aht: "4m 20s", agr: 0.44, acc: "97.5%", qual: 0.429 },
-                { scope: "Entire Team", wf: "Article Annotations", proj_id: "PRJ-301", proj_name: "Help Center Q1", proj_done: 800, proj_total: 800, proj_by: "Content Team", proj_at: "2026-01-15", qty: 800, aht: "5m 10s", agr: 0.48, acc: "99.0%", qual: 0.475 },
-                { scope: "Entire Team", wf: "Article Annotations", proj_id: "PRJ-302", proj_name: "Help Center Q2", proj_done: 600, proj_total: 800, proj_by: "Content Team", proj_at: "2026-04-01", qty: 600, aht: "5m 30s", agr: 0.45, acc: "98.0%", qual: 0.441 },
-                { scope: "Entire Team", wf: "Article Annotations", proj_id: "PRJ-303", proj_name: "Blog Post Tags", proj_done: 1200, proj_total: 1200, proj_by: "Marketing", proj_at: "2026-05-20", qty: 1200, aht: "2m 15s", agr: 0.49, acc: "99.5%", qual: 0.487 },
-                { scope: "Entire Team", wf: "Article Annotations", proj_id: "PRJ-304", proj_name: "KB Overhaul", proj_done: 150, proj_total: 2000, proj_by: "Science Team", proj_at: "2026-06-20", qty: 150, aht: "6m 00s", agr: 0.41, acc: "96.0%", qual: 0.393 }
+                { scope: "Entire Team", wf: "Chat Intents", proj_id: "PRJ-101", proj_name: "Q2 Intents Tracking", proj_done: 1500, proj_total: 1500, proj_reviewed: 1200, proj_review_total: 1500, proj_by: "Ops Team", proj_at: "2026-05-15", qty: 1500, aht: "3m 45s", agr: 0.47, acc: "98.5%", qual: 0.463 },
+                { scope: "Entire Team", wf: "auto", proj_id: "PRJ-201", proj_name: "Auto-Assist Beta", proj_done: 450, proj_total: 500, proj_reviewed: 400, proj_review_total: 500, proj_by: "Science Team", proj_at: "2026-06-01", qty: 450, aht: "4m 00s", agr: 0.46, acc: "98.5%", qual: 0.453 },
+                { scope: "Entire Team", wf: "auto", proj_id: "PRJ-202", proj_name: "Auto-Assist Edge Cases", proj_done: 500, proj_total: 1000, proj_reviewed: 450, proj_review_total: 1000, proj_by: "Ops Team", proj_at: "2026-06-10", qty: 500, aht: "4m 20s", agr: 0.44, acc: "97.5%", qual: 0.429 },
+                { scope: "Entire Team", wf: "Article Annotations", proj_id: "PRJ-301", proj_name: "Help Center Q1", proj_done: 800, proj_total: 800, proj_reviewed: 750, proj_review_total: 800, proj_by: "Content Team", proj_at: "2026-01-15", qty: 800, aht: "5m 10s", agr: 0.48, acc: "99.0%", qual: 0.475 },
+                { scope: "Entire Team", wf: "Article Annotations", proj_id: "PRJ-302", proj_name: "Help Center Q2", proj_done: 600, proj_total: 800, proj_reviewed: 500, proj_review_total: 800, proj_by: "Content Team", proj_at: "2026-04-01", qty: 600, aht: "5m 30s", agr: 0.45, acc: "98.0%", qual: 0.441 },
+                { scope: "Entire Team", wf: "Article Annotations", proj_id: "PRJ-303", proj_name: "Blog Post Tags", proj_done: 1200, proj_total: 1200, proj_reviewed: 1100, proj_review_total: 1200, proj_by: "Marketing", proj_at: "2026-05-20", qty: 1200, aht: "2m 15s", agr: 0.49, acc: "99.5%", qual: 0.487 },
+                { scope: "Entire Team", wf: "Article Annotations", proj_id: "PRJ-304", proj_name: "KB Overhaul", proj_done: 150, proj_total: 2000, proj_reviewed: 100, proj_review_total: 2000, proj_by: "Science Team", proj_at: "2026-06-20", qty: 150, aht: "6m 00s", agr: 0.41, acc: "96.0%", qual: 0.393 }
             ],
             member: [
-                { scope: "Annotator 1", wf: "Chat Intents", proj_id: "PRJ-101", proj_name: "Q2 Intents Tracking", proj_done: 1500, proj_total: 1500, proj_by: "Ops Team", proj_at: "2026-05-15", qty: 750, aht: "3m 20s", agr: 0.47, acc: "99.0%", qual: 0.465 },
-                { scope: "Annotator 1", wf: "auto", proj_id: "PRJ-201", proj_name: "Auto-Assist Beta", proj_done: 450, proj_total: 500, proj_by: "Science Team", proj_at: "2026-06-01", qty: 450, aht: "4m 45s", agr: 0.44, acc: "98.8%", qual: 0.435 },
-                { scope: "Annotator 1", wf: "Article Annotations", proj_id: "PRJ-301", proj_name: "Help Center Q1", proj_done: 800, proj_total: 800, proj_by: "Content Team", proj_at: "2026-01-15", qty: 400, aht: "5m 00s", agr: 0.48, acc: "99.0%", qual: 0.475 },
-                { scope: "Annotator 1", wf: "Article Annotations", proj_id: "PRJ-302", proj_name: "Help Center Q2", proj_done: 600, proj_total: 800, proj_by: "Content Team", proj_at: "2026-04-01", qty: 300, aht: "5m 15s", agr: 0.46, acc: "98.5%", qual: 0.453 },
-                { scope: "Annotator 1", wf: "Article Annotations", proj_id: "PRJ-303", proj_name: "Blog Post Tags", proj_done: 1200, proj_total: 1200, proj_by: "Marketing", proj_at: "2026-05-20", qty: 600, aht: "2m 10s", agr: 0.49, acc: "99.5%", qual: 0.487 },
-                { scope: "Annotator 1", wf: "Article Annotations", proj_id: "PRJ-304", proj_name: "KB Overhaul", proj_done: 150, proj_total: 2000, proj_by: "Science Team", proj_at: "2026-06-20", qty: 75, aht: "5m 50s", agr: 0.42, acc: "96.5%", qual: 0.405 },
+                { scope: "Annotator 1", wf: "Chat Intents", proj_id: "PRJ-101", proj_name: "Q2 Intents Tracking", proj_done: 1500, proj_total: 1500, proj_reviewed: 1200, proj_review_total: 1500, proj_by: "Ops Team", proj_at: "2026-05-15", qty: 750, aht: "3m 20s", agr: 0.47, acc: "99.0%", qual: 0.465 },
+                { scope: "Annotator 1", wf: "auto", proj_id: "PRJ-201", proj_name: "Auto-Assist Beta", proj_done: 450, proj_total: 500, proj_reviewed: 400, proj_review_total: 500, proj_by: "Science Team", proj_at: "2026-06-01", qty: 450, aht: "4m 45s", agr: 0.44, acc: "98.8%", qual: 0.435 },
+                { scope: "Annotator 1", wf: "Article Annotations", proj_id: "PRJ-301", proj_name: "Help Center Q1", proj_done: 800, proj_total: 800, proj_reviewed: 750, proj_review_total: 800, proj_by: "Content Team", proj_at: "2026-01-15", qty: 400, aht: "5m 00s", agr: 0.48, acc: "99.0%", qual: 0.475 },
+                { scope: "Annotator 1", wf: "Article Annotations", proj_id: "PRJ-302", proj_name: "Help Center Q2", proj_done: 600, proj_total: 800, proj_reviewed: 500, proj_review_total: 800, proj_by: "Content Team", proj_at: "2026-04-01", qty: 300, aht: "5m 15s", agr: 0.46, acc: "98.5%", qual: 0.453 },
+                { scope: "Annotator 1", wf: "Article Annotations", proj_id: "PRJ-303", proj_name: "Blog Post Tags", proj_done: 1200, proj_total: 1200, proj_reviewed: 1100, proj_review_total: 1200, proj_by: "Marketing", proj_at: "2026-05-20", qty: 600, aht: "2m 10s", agr: 0.49, acc: "99.5%", qual: 0.487 },
+                { scope: "Annotator 1", wf: "Article Annotations", proj_id: "PRJ-304", proj_name: "KB Overhaul", proj_done: 150, proj_total: 2000, proj_reviewed: 100, proj_review_total: 2000, proj_by: "Science Team", proj_at: "2026-06-20", qty: 75, aht: "5m 50s", agr: 0.42, acc: "96.5%", qual: 0.405 },
 
-                { scope: "Annotator 2", wf: "Chat Intents", proj_id: "PRJ-101", proj_name: "Q2 Intents Tracking", proj_done: 1500, proj_total: 1500, proj_by: "Ops Team", proj_at: "2026-05-15", qty: 750, aht: "3m 50s", agr: 0.47, acc: "98.0%", qual: 0.460 },
-                { scope: "Annotator 2", wf: "auto", proj_id: "PRJ-202", proj_name: "Auto-Assist Edge Cases", proj_done: 500, proj_total: 1000, proj_by: "Ops Team", proj_at: "2026-06-10", qty: 500, aht: "4m 20s", agr: 0.44, acc: "97.5%", qual: 0.429 },
-                { scope: "Annotator 2", wf: "Article Annotations", proj_id: "PRJ-301", proj_name: "Help Center Q1", proj_done: 800, proj_total: 800, proj_by: "Content Team", proj_at: "2026-01-15", qty: 400, aht: "5m 20s", agr: 0.47, acc: "99.0%", qual: 0.465 },
-                { scope: "Annotator 2", wf: "Article Annotations", proj_id: "PRJ-302", proj_name: "Help Center Q2", proj_done: 600, proj_total: 800, proj_by: "Content Team", proj_at: "2026-04-01", qty: 300, aht: "5m 45s", agr: 0.44, acc: "97.5%", qual: 0.429 },
-                { scope: "Annotator 2", wf: "Article Annotations", proj_id: "PRJ-303", proj_name: "Blog Post Tags", proj_done: 1200, proj_total: 1200, proj_by: "Marketing", proj_at: "2026-05-20", qty: 600, aht: "2m 20s", agr: 0.48, acc: "99.0%", qual: 0.475 },
-                { scope: "Annotator 2", wf: "Article Annotations", proj_id: "PRJ-304", proj_name: "KB Overhaul", proj_done: 150, proj_total: 2000, proj_by: "Science Team", proj_at: "2026-06-20", qty: 75, aht: "6m 10s", agr: 0.40, acc: "95.5%", qual: 0.382 }
+                { scope: "Annotator 2", wf: "Chat Intents", proj_id: "PRJ-101", proj_name: "Q2 Intents Tracking", proj_done: 1500, proj_total: 1500, proj_reviewed: 1200, proj_review_total: 1500, proj_by: "Ops Team", proj_at: "2026-05-15", qty: 750, aht: "3m 50s", agr: 0.47, acc: "98.0%", qual: 0.460 },
+                { scope: "Annotator 2", wf: "auto", proj_id: "PRJ-202", proj_name: "Auto-Assist Edge Cases", proj_done: 500, proj_total: 1000, proj_reviewed: 450, proj_review_total: 1000, proj_by: "Ops Team", proj_at: "2026-06-10", qty: 500, aht: "4m 20s", agr: 0.44, acc: "97.5%", qual: 0.429 },
+                { scope: "Annotator 2", wf: "Article Annotations", proj_id: "PRJ-301", proj_name: "Help Center Q1", proj_done: 800, proj_total: 800, proj_reviewed: 750, proj_review_total: 800, proj_by: "Content Team", proj_at: "2026-01-15", qty: 400, aht: "5m 20s", agr: 0.47, acc: "99.0%", qual: 0.465 },
+                { scope: "Annotator 2", wf: "Article Annotations", proj_id: "PRJ-302", proj_name: "Help Center Q2", proj_done: 600, proj_total: 800, proj_reviewed: 500, proj_review_total: 800, proj_by: "Content Team", proj_at: "2026-04-01", qty: 300, aht: "5m 45s", agr: 0.44, acc: "97.5%", qual: 0.429 },
+                { scope: "Annotator 2", wf: "Article Annotations", proj_id: "PRJ-303", proj_name: "Blog Post Tags", proj_done: 1200, proj_total: 1200, proj_reviewed: 1100, proj_review_total: 1200, proj_by: "Marketing", proj_at: "2026-05-20", qty: 600, aht: "2m 20s", agr: 0.48, acc: "99.0%", qual: 0.475 },
+                { scope: "Annotator 2", wf: "Article Annotations", proj_id: "PRJ-304", proj_name: "KB Overhaul", proj_done: 150, proj_total: 2000, proj_reviewed: 100, proj_review_total: 2000, proj_by: "Science Team", proj_at: "2026-06-20", qty: 75, aht: "6m 10s", agr: 0.40, acc: "95.5%", qual: 0.382 }
             ],
             task: [
                 { 
                     id: "DP-8849-XYZ", wf: "auto", proj_id: "PRJ-201", proj_name: "Auto-Assist Beta", total: 3, cancelled: 0, skipped: 0, annotators: "Annotator 1, Annotator 2",
-                    language: "English", reviewer: "Reviewer 1", reviewed: true, review_accepted: true, review_rejected: false, 
+                    language: "English", brand: "Brand X", intent: "Password Reset", reviewer: "Reviewer 1", reviewed: true, review_accepted: true, review_rejected: false, 
                     annotation_result: '{"procedure_relevance":"Relevant"}', annotation_time: "2m 15s", review_time: "1m 10s",
                     created_at: "2026-06-23", updated_at: "2026-06-24", updated_by: "Reviewer 1", drafts: false,
                     choices: { "procedure_relevance": "Relevant", "article_relevance": "Irrelevant", "aa_reply_ground": "Reply grounded in Procedure" }
                 },
                 { 
                     id: "DP-8850-ABC", wf: "auto", proj_id: "PRJ-202", proj_name: "Auto-Assist Edge Cases", total: 2, cancelled: 1, skipped: 0, annotators: "Annotator 2, Annotator 4",
-                    language: "Spanish", reviewer: "Reviewer 2", reviewed: false, review_accepted: false, review_rejected: false, 
+                    language: "Spanish", brand: "Brand Y", intent: "Refund Request", reviewer: "Reviewer 2", reviewed: false, review_accepted: false, review_rejected: false, 
                     annotation_result: '{"procedure_relevance":"NA"}', annotation_time: "3m 45s", review_time: "0m 0s",
                     created_at: "2026-06-22", updated_at: "2026-06-23", updated_by: "Annotator 4", drafts: true,
                     choices: { "procedure_relevance": "NA", "article_relevance": "Relevant", "aa_reply_ground": "Reply grounded in Conversation" }
                 },
                 { 
                     id: "DP-1001-INT", wf: "Chat Intents", proj_id: "PRJ-101", proj_name: "Q2 Intents Tracking", total: 5, cancelled: 0, skipped: 1, annotators: "Annotator 1",
-                    language: "English", reviewer: "", reviewed: false, review_accepted: false, review_rejected: false, 
+                    language: "English", brand: "Brand X", intent: "Billing", reviewer: "", reviewed: false, review_accepted: false, review_rejected: false, 
                     annotation_result: '{"intent":"Billing"}', annotation_time: "1m 30s", review_time: "0m 0s",
                     created_at: "2026-06-24", updated_at: "2026-06-24", updated_by: "Annotator 1", drafts: false,
                     choices: {} 
                 },
                 { 
                     id: "DP-3001-ART", wf: "Article Annotations", proj_id: "PRJ-301", proj_name: "Help Center Q1", total: 2, cancelled: 0, skipped: 0, annotators: "Annotator 1, Annotator 2",
-                    language: "English", reviewer: "Reviewer 1", reviewed: true, review_accepted: true, review_rejected: false, 
+                    language: "English", brand: "Global", intent: "Policy Inquiry", reviewer: "Reviewer 1", reviewed: true, review_accepted: true, review_rejected: false, 
                     annotation_result: '{"tag":"Billing Policies"}', annotation_time: "5m 15s", review_time: "1m 10s",
                     created_at: "2026-02-10", updated_at: "2026-02-12", updated_by: "Reviewer 1", drafts: false,
                     choices: {}
@@ -564,11 +570,11 @@
             return ((m ? parseInt(m[1]) : 0) * 60) + (s ? parseInt(s[1]) : 0);
         }
 
-        function formatProgress(done, total) {
+        function formatProgress(done, total, colorVar = 'var(--success)') {
             let pct = total ? Math.round((done/total)*100) : 0;
             return `<div style="display:flex; align-items:center; gap:5px;">
                         <div style="background: var(--border); border-radius: 4px; width: 60px; height: 6px;">
-                            <div style="background: var(--success); height: 100%; border-radius: 4px; width: ${pct}%;"></div>
+                            <div style="background: ${colorVar}; height: 100%; border-radius: 4px; width: ${pct}%;"></div>
                         </div>
                         <span style="font-size:0.75rem">${pct}%</span>
                     </div>`;
@@ -698,10 +704,12 @@
                     const fId = document.getElementById('col-dp-id').value.toLowerCase();
                     const fProjId = document.getElementById('col-dp-proj-id').value.toLowerCase();
                     const fProjName = document.getElementById('col-dp-proj-name').value.toLowerCase();
+                    const fLang = document.getElementById('col-dp-lang').value.toLowerCase();
+                    const fBrand = document.getElementById('col-dp-brand').value.toLowerCase();
+                    const fIntent = document.getElementById('col-dp-intent').value.toLowerCase();
                     const fTot = document.getElementById('col-dp-tot').value;
                     const fSkip = document.getElementById('col-dp-skip').value;
                     const fAnn = document.getElementById('col-dp-ann').value;
-                    const fLang = document.getElementById('col-dp-lang').value.toLowerCase();
                     const fRev = document.getElementById('col-dp-reviewer').value.toLowerCase();
                     const fReviewed = document.getElementById('col-dp-reviewed').value;
                     const fRevAcc = document.getElementById('col-dp-revacc').value;
@@ -717,10 +725,12 @@
                     if (!row.id.toLowerCase().includes(fId)) return;
                     if (!row.proj_id.toLowerCase().includes(fProjId)) return;
                     if (!row.proj_name.toLowerCase().includes(fProjName)) return;
+                    if (!row.language.toLowerCase().includes(fLang)) return;
+                    if ((row.brand || "").toLowerCase().indexOf(fBrand) === -1) return;
+                    if ((row.intent || "").toLowerCase().indexOf(fIntent) === -1) return;
                     if (!evaluateNumeric(row.total, fTot)) return;
                     if (!evaluateAnnotatorsFilter(row.annotators, fAnn)) return;
                     if (fSkip !== "" && ((row.skipped + row.cancelled > 0).toString() !== fSkip)) return;
-                    if (!row.language.toLowerCase().includes(fLang)) return;
                     if (!row.reviewer.toLowerCase().includes(fRev)) return;
                     if (fReviewed !== "" && row.reviewed.toString() !== fReviewed) return;
                     if (fRevAcc !== "" && row.review_accepted.toString() !== fRevAcc) return;
@@ -755,6 +765,8 @@
                         <td>${row.proj_id}</td>
                         <td>${row.proj_name}</td>
                         <td>${row.language}</td>
+                        <td>${row.brand || '-'}</td>
+                        <td>${row.intent || '-'}</td>
                         <td>${row.drafts}</td>
                         <td><span style="color:var(--warning)">${row.skipped}</span> / <span style="color:#EF4444">${row.cancelled}</span></td>
                         <td>${row.total}</td>
@@ -782,6 +794,7 @@
                     const fProjName = document.getElementById('col-proj-name').value.toLowerCase();
                     const fProjTasks = document.getElementById('col-proj-tasks').value;
                     const fProjProg = document.getElementById('col-proj-prog').value.replace('%','');
+                    const fProjQaProg = document.getElementById('col-proj-qaprog').value.replace('%','');
                     const fProjBy = document.getElementById('col-proj-by').value.toLowerCase();
                     const fProjAt = document.getElementById('col-proj-at').value.toLowerCase();
                     
@@ -795,8 +808,13 @@
                     if (!row.proj_id.toLowerCase().includes(fProjId)) return;
                     if (!row.proj_name.toLowerCase().includes(fProjName)) return;
                     if (!evaluateNumeric(row.proj_done, fProjTasks)) return;
+                    
                     let progPct = row.proj_total ? Math.round((row.proj_done/row.proj_total)*100) : 0;
                     if (!evaluateNumeric(progPct, fProjProg)) return;
+
+                    let qaProgPct = row.proj_review_total ? Math.round((row.proj_reviewed/row.proj_review_total)*100) : 0;
+                    if (!evaluateNumeric(qaProgPct, fProjQaProg)) return;
+
                     if (!row.proj_by.toLowerCase().includes(fProjBy)) return;
                     if (!row.proj_at.toLowerCase().includes(fProjAt)) return;
 
@@ -828,6 +846,7 @@
 
                     let sumQty = 0, sumSecs = 0, sumAgr = 0, sumAcc = 0, sumQual = 0;
                     let sumProjDone = 0, sumProjTotal = 0;
+                    let sumProjReviewed = 0, sumProjReviewTotal = 0;
                     let uniqueProjects = new Set();
 
                     rows.forEach(r => {
@@ -841,6 +860,8 @@
                             uniqueProjects.add(r.proj_id);
                             sumProjDone += r.proj_done;
                             sumProjTotal += r.proj_total;
+                            sumProjReviewed += (r.proj_reviewed || 0);
+                            sumProjReviewTotal += (r.proj_review_total || 0);
                         }
                     });
 
@@ -865,7 +886,8 @@
                         <td style="color:var(--text-muted)">${isMultiple ? `Multiple (${uniqueProjects.size})` : rows[0].proj_id}</td>
                         <td style="color:var(--text-muted)">${isMultiple ? `-` : rows[0].proj_name}</td>
                         <td>${sumProjDone} / ${sumProjTotal}</td>
-                        <td>${formatProgress(sumProjDone, sumProjTotal)}</td>
+                        <td>${formatProgress(sumProjDone, sumProjTotal, 'var(--success)')}</td>
+                        <td>${formatProgress(sumProjReviewed, sumProjReviewTotal, 'var(--secondary)')}</td>
                         <td style="color:var(--text-muted)">${isMultiple ? `-` : rows[0].proj_by}</td>
                         <td style="color:var(--text-muted)">${isMultiple ? `-` : rows[0].proj_at}</td>
                         <td style="font-weight:600;">${sumQty}</td>
@@ -887,7 +909,8 @@
                                 <td>${r.proj_id}</td>
                                 <td>${r.proj_name}</td>
                                 <td>${r.proj_done} / ${r.proj_total}</td>
-                                <td>${formatProgress(r.proj_done, r.proj_total)}</td>
+                                <td>${formatProgress(r.proj_done, r.proj_total, 'var(--success)')}</td>
+                                <td>${formatProgress(r.proj_reviewed || 0, r.proj_review_total || 0, 'var(--secondary)')}</td>
                                 <td>${r.proj_by}</td>
                                 <td>${r.proj_at}</td>
                                 <td>${r.qty}</td>
